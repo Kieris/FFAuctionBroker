@@ -4,16 +4,20 @@ using FFAuctionBrokerLib.Models;
 
 namespace FFAuctionBrokerLib.DataAccess
 {
-	public class CsvDataAccess
+	public static class CsvDataAccess
 	{
-        public List<AuctionItem> ReadCsvFile()
+        /// <summary>
+        /// Read the CSV and obtain the auction items
+        /// </summary>
+        /// <returns>All items from the CSV</returns>
+        public static List<CsvAhItem> ReadCsvFile()
         {
-            List<AuctionItem> items = new();
+            List<CsvAhItem> items = new();
             using (var reader = new StreamReader("ahitems.csv"))
             {
                 using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
                 {
-                    var records = csv.GetRecords<AuctionItem>();
+                    var records = csv.GetRecords<CsvAhItem>();
                     items = records.ToList();
                 }
             }
