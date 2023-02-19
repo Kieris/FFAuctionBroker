@@ -30,16 +30,36 @@ public class MariaDbCrud
     }
 
     /// <summary>
-    /// Gets an item from Auction House using its id
+    /// Gets all items from Auction House matching its item id
     /// </summary>
     /// <param name="id">The id of the item</param>
     /// <returns>The item if exists</returns>
-    public AuctionItem GetAhItemById(int id)
+    public List<AuctionItem>? GetAhItemsById(uint id)
     {
-        string sql = "select * from auction_house where id = @Id";
-        AuctionItem? output = new AuctionItem();
+        string sql = "select * from auction_house where itemid = @Id";
+        List<AuctionItem>? output = new ();
 
-        output = db.LoadData<AuctionItem, dynamic>(sql, new { Id = id }, _connectionString).FirstOrDefault();
+        output = db.LoadData<AuctionItem, dynamic>(sql, new { Id = id }, _connectionString);
+
+        if (output == null)
+        {
+            // do something to tell the user that the record was not found
+            return null;
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Get items that playing are selling that have not already been sold
+    /// </summary>
+    /// <param name="itemid">ItemId</param>
+    /// <returns>List of items if any that match query</returns>
+    public List<AuctionItem>? GetPlayerUnsoldAhItems(uint itemid)
+    {
+        string sql = "select * from auction_house where seller != 0 AND itemid = @Id AND sale = 0";
+        List<AuctionItem>? output = new();
+
+        output = db.LoadData<AuctionItem, dynamic>(sql, new { Id = itemid }, _connectionString);
 
         if (output == null)
         {
@@ -64,6 +84,20 @@ public class MariaDbCrud
     }
 
     /// <summary>
+    /// Creates an item for the Delivery Box when an item is sold
+    /// </summary>
+    /// <param name="item">The item to be added to the Auction House table</param>
+    public void CreateDeliveryItem(DeliveryItem item)
+    {
+        // Save the basic contact
+        string sql = "insert into delivery_box (charid, charname, box, slot, itemid, " +
+            "itemsubid, quantity, senderid, sender, received, sent) values (@CharId, @CharName, @Box, @Slot, " +
+            "@ItemId, @ItemSubId, @Quantity, @SenderId, @Sender, @Received, @Sent);";
+
+        db.SaveData(sql, item, _connectionString);
+    }
+
+    /// <summary>
     /// Updates an item in the Auction House (generally if item sold)
     /// </summary>
     /// <param name="item">The item to update</param>
@@ -78,7 +112,7 @@ public class MariaDbCrud
     /// Remove an item from the Auction House. This will rarely be used if ever.
     /// </summary>
     /// <param name="id">The id of the item to remove</param>
-    public void RemoveAhItem(int id)
+    public void RemoveAhItem(uint id)
     {
         string sql = "delete from auction_house where id = @Id";
         db.SaveData(sql, new { Id = id }, _connectionString);

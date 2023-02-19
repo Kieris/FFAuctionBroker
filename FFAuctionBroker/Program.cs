@@ -1,4 +1,5 @@
 ﻿using FFAuctionBrokerLib.DataAccess;
+using FFAuctionBrokerLib.Helpers;
 using FFAuctionBrokerLib.Models;
 using Microsoft.Extensions.Configuration;
 
@@ -15,26 +16,17 @@ string input = Console.ReadLine();
 if(input is not null && int.TryParse(input, out int val))
 {
     var csvItems = CsvDataAccess.ReadCsvFile();
-
-    var item = new AuctionItem()
-    {
-        ItemId = csvItems.First().ItemId,
-        Price = csvItems.First().Price1,
-       
-    };
-
-    var countSell1 = csvItems.Where(x => x.Sell1);
-    var countSell12 = csvItems.Where(x => x.Sell12);
-
-    Console.WriteLine(countSell1?.Count());
-    Console.WriteLine(countSell12.Count());    
-
-
+    string result;
     switch (val)
     {
-        case 1: 
+        case 1:
+            result = Utils.Maintain(sql, csvItems);
+            Console.WriteLine(result);
             break;
-        case 2: //do something
+        case 2:
+            Console.WriteLine("Adding all items to database...");
+            result = Utils.Initialize(sql, csvItems);
+            Console.WriteLine(result);
             break;
         case 3: //do something
             break;
@@ -43,6 +35,8 @@ if(input is not null && int.TryParse(input, out int val))
             break;
     }
 }
+
+Console.ReadLine();
 
 static string? GetConnectionString(string connectionStringName = "Default")
 {
