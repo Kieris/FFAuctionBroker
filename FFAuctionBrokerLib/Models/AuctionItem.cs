@@ -25,10 +25,7 @@ public class AuctionItem
 
 	public uint SellDate { get; set; }
 
-	public AuctionItem()
-	{
-			
-	}
+	public AuctionItem() { }
 
 	public AuctionItem(CsvAhItem item)
 	{
@@ -38,6 +35,5 @@ public class AuctionItem
 		Price = item.Sell12 ? item.Price12 : item.Price1;
 		Date = Utils.ConvertToTimestamp(DateTime.Now);
     }
-
 }
 

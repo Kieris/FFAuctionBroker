@@ -7,6 +7,7 @@ namespace FFAuctionBrokerLib.Helpers;
 public class Utils
 {
     private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    public static bool BuyPlayerItems = true;
     private static Random rand = new Random();
 
     /// <summary>
@@ -77,7 +78,7 @@ public class Utils
                 }
 
                 var playerItems = sql.GetPlayerUnsoldAhItems(item.ItemId);
-                if (playerItems?.Count > 0)
+                if (playerItems?.Count > 0 && BuyPlayerItems)
                 {
                     foreach(var pitem in playerItems)
                     {
@@ -131,6 +132,10 @@ public class Utils
         sql.CreateDeliveryItem(dboxItem);
     }
 
+    /// <summary>
+    /// Assign values to mark an item as sold in auction_house table
+    /// </summary>
+    /// <param name="item"></param>
     private static void UpdateSoldItem(AuctionItem item)
     {
         item.BuyerName = GetRandomName();
