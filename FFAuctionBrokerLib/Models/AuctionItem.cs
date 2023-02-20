@@ -33,7 +33,7 @@ public class AuctionItem
 	public AuctionItem(CsvAhItem item)
 	{
 		ItemId = item.ItemId;
-		SellerName = Utils.GetRandomSeller();
+		SellerName = Utils.GetRandomName();
 		Stack = item.Sell12;
 		Price = item.Sell12 ? item.Price12 : item.Price1;
 		Date = Utils.ConvertToTimestamp(DateTime.Now);

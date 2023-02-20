@@ -7,7 +7,6 @@ namespace FFAuctionBrokerLib.Helpers;
 public class Utils
 {
     private static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-    public static bool LogSells = true;
     private static Random rand = new Random();
 
     /// <summary>
@@ -32,10 +31,15 @@ public class Utils
                 //the amount of each item to add to the database
                 var stock = item.Sell12 ? item.Stock1 : item.Stock12;
 
+                var auctionItem = new AuctionItem(item);
                 for (int i = 0; i < stock; i++)
                 {
-                    sql.CreateAhItem(new AuctionItem(item));
+                    sql.CreateAhItem(auctionItem);
                 }
+
+                //create a sold starter item to show price
+                UpdateSoldItem(auctionItem);
+                sql.CreateAhItem(auctionItem);
             }
         }
         catch(Exception e)
@@ -73,7 +77,7 @@ public class Utils
                 }
 
                 var playerItems = sql.GetPlayerUnsoldAhItems(item.ItemId);
-                if (playerItems?.Count > 0 && LogSells)
+                if (playerItems?.Count > 0)
                 {
                     foreach(var pitem in playerItems)
                     {
@@ -108,9 +112,7 @@ public class Utils
     /// </summary>
     private static void BuyItem(MariaDbCrud sql, AuctionItem item)
     {
-        item.BuyerName = GetRandomSeller();
-        item.SellDate = ConvertToTimestamp(DateTime.Now);
-        item.Sale = item.Price;
+        UpdateSoldItem(item);
 
         sql.UpdateAhItem(item);
 
@@ -129,13 +131,20 @@ public class Utils
         sql.CreateDeliveryItem(dboxItem);
     }
 
+    private static void UpdateSoldItem(AuctionItem item)
+    {
+        item.BuyerName = GetRandomName();
+        item.SellDate = ConvertToTimestamp(DateTime.Now);
+        item.Sale = item.Price;
+    }
+
     /// <summary>
     /// Get a random name from a list of old rockage members (Bismarck) to be the buyer or seller.
     /// This is meant to be tribute to those people and these names would need to be added to the
     /// table of disallowed_names in the login db.
     /// </summary>
     /// <returns>A random name</returns>
-    public static string GetRandomSeller()
+    public static string GetRandomName()
     {
         string[] sellers = {"Vizzini" , "Spudz", "Durandel", "Bellemithra", "Vaulout", "Samsonk",
         "Kulak", "Pepsimaus", "Noobles", "Brunokurt", "Shatow", "Khiinroye", "Quikstrike", "Thadin",
