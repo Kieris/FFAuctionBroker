@@ -54,9 +54,12 @@ void StartMainLoop()
 
 static string? GetConnectionString(string connectionStringName = "Default")
 {
+    var environment = Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT");
     var builder = new ConfigurationBuilder()
-        .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile("appsettings.json");
+        .AddJsonFile("appsettings.json")
+        .AddJsonFile($"appsettings.{environment}.json", optional: true)
+        .AddUserSecrets<Program>()
+        .AddEnvironmentVariables();
 
     var config = builder.Build();
 
@@ -65,7 +68,7 @@ static string? GetConnectionString(string connectionStringName = "Default")
 
 void StartMaintenanceCheck(MariaDbCrud sql, List<CsvAhItem>? csvItems)
 {
-    System.Timers.Timer timer = new(interval: 60000); //1200000);//20 minutes in millisecs
+    System.Timers.Timer timer = new(interval: 1200000);//20 minutes in millisecs
     timer.Elapsed += (sender, e) => MaintenanceCheck(sql, csvItems);
     timer.Start();
 }

@@ -68,7 +68,7 @@ public class MariaDbCrud
     /// </summary>
     /// <param name="item">The item to be added to the Auction House table</param>
     public void CreateAhItem(AuctionItem item)
-    {
+    {        
         // Save the basic contact
         string sql = "insert into auction_house (itemid, stack, seller, seller_name, date, " +
             "price, buyer_name, sale, sell_date) values (@ItemId, @Stack, @Seller, @SellerName, " +
