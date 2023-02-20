@@ -34,18 +34,12 @@ public class MariaDbCrud
     /// </summary>
     /// <param name="id">The id of the item</param>
     /// <returns>The item if exists</returns>
-    public List<AuctionItem>? GetAhItemsById(uint id)
+    public List<AuctionItem>? GetAhItemsById(uint id, bool stack)
     {
-        string sql = "select * from auction_house where itemid = @Id";
-        List<AuctionItem>? output = new ();
+        string sql = "select * from auction_house where itemid = @Id AND stack = @Stack";
+        
+        var output = db.LoadData<AuctionItem, dynamic>(sql, new { Id = id, Stack = stack }, _connectionString);
 
-        output = db.LoadData<AuctionItem, dynamic>(sql, new { Id = id }, _connectionString);
-
-        if (output == null)
-        {
-            // do something to tell the user that the record was not found
-            return null;
-        }
         return output;
     }
 
@@ -95,6 +89,33 @@ public class MariaDbCrud
             "@ItemId, @ItemSubId, @Quantity, @SenderId, @Sender, @Received, @Sent);";
 
         db.SaveData(sql, item, _connectionString);
+    }
+
+    /// <summary>
+    /// Get required parameters to put item in right slot and itemsubid for delivery box
+    /// </summary>
+    /// <param name="item">Delivery box item</param>
+    public void GetMaxSlot(DeliveryItem item)
+    {
+        // Save the basic contact
+        string sql = "select max(slot) from delivery_box where box = @Box AND charid = @CharId;";
+
+        var output = db.LoadData<short, dynamic>(sql,
+            new {
+                item.Box,
+                item.CharId
+            }, _connectionString).FirstOrDefault();
+
+        if(output < 8)
+        {
+            item.Slot = 8;
+            item.ItemSubId = 825;
+        }
+        else
+        {
+            item.Slot = (short)(output + 1);
+            item.ItemSubId = 954;                
+        }
     }
 
     /// <summary>

@@ -13,7 +13,7 @@ public class Utils
     /// <summary>
     /// Converts a DateTime to the timestamp value needed for the database
     /// </summary>
-    private static uint ConvertToTimestamp(DateTime value)
+    public static uint ConvertToTimestamp(DateTime value)
     {
         TimeSpan elapsedTime = value - Epoch;
         return (uint)elapsedTime.TotalSeconds;
@@ -34,13 +34,7 @@ public class Utils
 
                 for (int i = 0; i < stock; i++)
                 {
-                    sql.CreateAhItem(new AuctionItem()
-                    {
-                        ItemId = item.ItemId,
-                        Stack = item.Sell12,
-                        Price = item.Sell12 ? item.Price12 : item.Price1,
-                        Date = ConvertToTimestamp(DateTime.Now)
-                    });
+                    sql.CreateAhItem(new AuctionItem(item));
                 }
             }
         }
@@ -64,22 +58,17 @@ public class Utils
             {
                 var stock = item.Sell12 ? item.Stock1 : item.Stock12;
 
-                var dbItems = sql.GetAhItemsById(item.ItemId);
+                //need to account for stacks and singles
+                var dbItems = sql.GetAhItemsById(item.ItemId, item.Sell12);
 
-                //need to account for stacks and singles HERE 
+                 
                 if(dbItems is not null && dbItems.Count < stock)
                 {
                     var needed = stock - dbItems.Count;
                     //the amount of each item to add to the database             
                     for (int i = 0; i < needed; i++)
                     {
-                        sql.CreateAhItem(new AuctionItem()
-                        {
-                            ItemId = item.ItemId,
-                            Stack = item.Sell12,
-                            Price = item.Sell12 ? item.Price12 : item.Price1,
-                            Date = ConvertToTimestamp(DateTime.Now)
-                        });
+                        sql.CreateAhItem(new AuctionItem(item));
                     }
                 }
 
@@ -93,18 +82,17 @@ public class Utils
                         {
                             if(pitem.Price <= item.Price12)
                             {
-
+                                BuyItem(sql, pitem);
                             }
                         }
                         else
                         {
                             if(pitem.Price <= item.Price1)
                             {
-
+                                BuyItem(sql, pitem);
                             }
                         }
                     }
-                    Console.WriteLine(playerItems?.FirstOrDefault()?.ItemId);
                 }
             }         
         }
@@ -118,22 +106,27 @@ public class Utils
     /// <summary>
     /// Buys an item that meets the requirements and updates the database
     /// </summary>
-    private static void BuyItem(MariaDbCrud sql, AuctionItem item, uint sellerPrice)
+    private static void BuyItem(MariaDbCrud sql, AuctionItem item)
     {
-        var buyer = GetRandomSeller();
-        item.BuyerName = buyer;
+        item.BuyerName = GetRandomSeller();
         item.SellDate = ConvertToTimestamp(DateTime.Now);
-        item.Sale = sellerPrice;
+        item.Sale = item.Price;
 
         sql.UpdateAhItem(item);
 
-        sql.CreateDeliveryItem(new DeliveryItem()
+        var dboxItem = new DeliveryItem()
         {
-            ItemId = item.Id,//this should probably be gil id
+            ItemId = 65535,//gil id
             Quantity = item.Sale,
-            //SenderId
-        });
+            Sender = "AH-Jeuno",
+            CharId = item.Seller,
+            CharName = item.SellerName,
+            Box = 1
+        };
 
+        sql.GetMaxSlot(dboxItem);
+
+        sql.CreateDeliveryItem(dboxItem);
     }
 
     /// <summary>

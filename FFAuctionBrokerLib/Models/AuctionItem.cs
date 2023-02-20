@@ -1,4 +1,6 @@
 ﻿
+using FFAuctionBrokerLib.Helpers;
+
 namespace FFAuctionBrokerLib.Models;
 
 public class AuctionItem
@@ -22,6 +24,20 @@ public class AuctionItem
 	public uint Sale { get; set; }
 
 	public uint SellDate { get; set; }
+
+	public AuctionItem()
+	{
+			
+	}
+
+	public AuctionItem(CsvAhItem item)
+	{
+		ItemId = item.ItemId;
+		SellerName = Utils.GetRandomSeller();
+		Stack = item.Sell12;
+		Price = item.Sell12 ? item.Price12 : item.Price1;
+		Date = Utils.ConvertToTimestamp(DateTime.Now);
+    }
 
 }
 
